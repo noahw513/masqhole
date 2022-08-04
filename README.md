@@ -1,2 +1,2 @@
 # masqhole
-dnsmasq sinkhole with TLS setup script.
+dnsmasq sinkhole setup script.
