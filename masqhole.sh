@@ -54,24 +54,57 @@ function MASQLIST() {
 		then
 			return 0;
 		else 
-			printf 'FATAL: Uknown error. Masqhole not present in /etc/.\n';
+			printf 'FATAL: Uknown error. Masqhole list, "masqhole.list", not present in /etc/.\n';
 			exit;
 		fi
 	fi
 }
-function AS_ROOT() {
-	if [ $(id -u) != 0 ]
+function SETUP_MASQ() {
+	if [ $1 = "s" ]
+	then 
+		printf 'Setting up dnsmasq as an external DNS server. \n';
+		DISTRO_INST;
+		MASQLIST;
+		RESOLVED_OFF;
+		# TODO: Server setup
+		exit;
+	fi
+	if [ $1 = "u" ]
 	then
-		printf 'FATAL: Script must be run as root.\n';
+		printf 'Setting up dnsmasq for local system use only. \n';
+		DISTRO_INST;
+		MASQLIST;
+		RESOLVED_OFF;
+		# TODO: Local system setup
 		exit;
 	fi
 }
-function SETUP_MASQ() {
+function MASQ_PROMPT() {
+	while true; 
+	do
+    		read -p 'Setup dnsmasq for local system use only? ' yn
+    		case $yn in
+			[Yy]* ) SETUP_MASQ 'u';;
+        		[Nn]* ) read -p 'Setup dnsmasq as an external DNS server? ' yn2
+				case $yn2 in
+					[Yy]* ) SETUP_MASQ 's';;
+					[Nn]* ) printf 'Invalid input. Exiting... \n'; break;;
+				esac;;
+   			* ) printf 'FATAL: Invalid user input or option selected. You must choose to setup dnsmasq as a local or external DNS server.\nExiting...\n'; break;;
+    		esac
+	done
 
 }
-function SETUP_PROMPT() {
+function AS_ROOT_ENTRY() {
+        if [ $(id -u) != 0 ]
+        then
+                printf 'FATAL: Script must be run as root.\n';
+                exit;
+        fi
+        if [ $(id -u) = 0 ]
+        then
+                printf 'Beginning masqhole setup.\n';
+		MASQ_PROMPT;
+        fi
 }
-AS_ROOT;
-MASQLIST;
-DISTRO_INST;
-RESOLVED_OFF;
+AS_ROOT_ENTRY;
