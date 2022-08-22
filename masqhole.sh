@@ -82,6 +82,7 @@ function SETUP_MASQ() {
                     INTERFACE_PROMPT;;
 	esac
 	}
+	INTERFACE_PROMPT;
 	if [ $1 = "s" ]
 	then 
 		printf 'Setting up dnsmasq as an external DNS server. \n';
