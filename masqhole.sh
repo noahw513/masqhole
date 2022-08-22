@@ -1,6 +1,7 @@
 #!/bin/bash
 OS_RELEASE=$(cat /etc/os-release | grep ID= | head -n 1);
 OS_RELEASE=${OS_RELEASE#*=};
+INTERFACES=$(ls /sys/class/net/);
 PKG_LIST="dnsmasq wget";
 function DISTRO_INST() {
 	local OS_RELEASE=$(cat /etc/os-release | grep ID= | head -n 1);
@@ -60,6 +61,26 @@ function MASQLIST() {
 	fi
 }
 function SETUP_MASQ() {
+	function INTERFACE_PROMPT() {
+	while true;
+	do
+        	printf 'Available interfaces: ';
+        	for INT in $INTERFACES
+        	do
+                	printf '\033[0;32m %s \033[0m' $INT;
+        	done
+        	printf '\n';
+        	read -p 'Which interface would you like to bind to? ' INTERFACE;
+        	printf 'You entered \033[0;32m %s\033[0m. ' $INTERFACE;
+        	read -p 'Is this correct? (Y/N) ' YN;
+        	break;
+	done
+	case $YN in
+                [Yy]* ) ;;
+                [Nn]* ) INTERFACE_PROMPT;;
+                * ) printf 'FATAL: Incorrect value entered. TODO: ADD RECURSION HERE.\n';;
+	esac
+	}
 	if [ $1 = "s" ]
 	then 
 		printf 'Setting up dnsmasq as an external DNS server. \n';
@@ -96,11 +117,11 @@ function SETUP_MASQ() {
 function MASQ_PROMPT() {
 	while true; 
 	do
-    		read -p 'Setup dnsmasq for local system use only? ' yn
-    		case $yn in
+    		read -p 'Setup dnsmasq for local system use only? ' YN
+    		case $YN in
 			[Yy]* ) SETUP_MASQ 'u';;
-        		[Nn]* ) read -p 'Setup dnsmasq as an external DNS server? ' yn2
-				case $yn2 in
+        		[Nn]* ) read -p 'Setup dnsmasq as an external DNS server? ' PROMPT
+				case $PROMPT in
 					[Yy]* ) SETUP_MASQ 's';;
 					[Nn]* ) printf 'Invalid input. Exiting... \n'; break;;
 				esac;;
