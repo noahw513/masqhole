@@ -121,8 +121,10 @@ function MASQ_PROMPT() {
         case $LS in
                 LOCAL|local ) SETUP_MASQ 'u';;
                 SERVER|server ) SETUP_MASQ 's';;
-                * ) printf '\033[0;31mERROR: Incorrect input value. Please input "SERVER/server" or "LOCAL/local".\033[0m\n';
-        esac
+                * ) printf '\033[0;31mERROR: Incorrect input value. ';
+                        printf 'Please input (SERVER/server) or (LOCAL/local).\033[0m\n';;
+        
+	esac
 }
 function AS_ROOT_ENTRY() {
         if [ $(id -u) != 0 ]
