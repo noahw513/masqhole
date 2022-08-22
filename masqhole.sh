@@ -75,7 +75,20 @@ function SETUP_MASQ() {
 		DISTRO_INST;
 		MASQLIST;
 		RESOLVED_OFF;
-		# TODO: Local system setup
+	        if [ $DISTRO = 'fedora' ] || [ $DISTRO = 'centos' ] || [ $DISTRO = 'rhel' ]
+        	then
+			NMSTAT=$(systemctl is-active NetworkManager);
+			if [ $NMSTAT = 'active' ] 
+			then
+				mv /etc/resolv.conf /etc/resolv.conf.old;
+				touch /etc/resolv.conf;
+				printf 'nameserver 127.0.0.1' >> /etc/resolv.conf;
+				sed '/\[main\]/a dns=none' /etc/NetworkManager/NetworkManager.conf >> /etc/NetworkManager/NetworkManager.conf;
+				sudo systemctl restart NetworkManager;
+			fi
+		fi
+		printf '### MASQHOLE CONFIGURATION BELOW ###\n' >> /etc/dnsmasq.conf
+		printf 'addn-hosts /etc/masqhole.list\n' >> /etc/dnsmasq.conf
 		exit;
 	fi
 }
