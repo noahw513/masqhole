@@ -9,14 +9,14 @@ function DISTRO_INST() {
 	then
 		for PKG in $PKG_LIST
 		do
-			dnf install $PKG &> /dev/null;
+			dnf install $PKG -y &> /dev/null;
 		done
 	fi
 	if [ $DISTRO = 'debian' ] || [ $DISTRO = 'ubuntu' ] 
 	then
 		for PKG in $PKG_LIST 
 		do
-			apt install $PKG &> /dev/null;
+			apt install $PKG -y &> /dev/null;
 		done
 	fi
 }
@@ -80,14 +80,15 @@ function SETUP_MASQ() {
 			NMSTAT=$(systemctl is-active NetworkManager);
 			if [ $NMSTAT = 'active' ] 
 			then
-				mv /etc/resolv.conf /etc/resolv.conf.old;
+				cp /etc/resolv.conf /etc/resolv.conf.old;
 				touch /etc/resolv.conf;
 				printf 'nameserver 127.0.0.1' >> /etc/resolv.conf;
 				sed '/\[main\]/a dns=none' /etc/NetworkManager/NetworkManager.conf >> /etc/NetworkManager/NetworkManager.conf;
 				sudo systemctl restart NetworkManager;
 			fi
 		fi
-		printf '### MASQHOLE CONFIGURATION BELOW ###\n' >> /etc/dnsmasq.conf
+		cp /etc/dnsmasq.conf /etc/dnsmasq.old
+		printf '### MASQHOLE CONFIGURATION ###\n' >> /etc/dnsmasq.conf
 		printf 'addn-hosts /etc/masqhole.list\n' >> /etc/dnsmasq.conf
 		exit;
 	fi
