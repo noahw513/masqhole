@@ -78,7 +78,8 @@ function SETUP_MASQ() {
 	case $YN in
                 [Yy]* ) ;;
                 [Nn]* ) INTERFACE_PROMPT;;
-                * ) printf 'FATAL: Incorrect value entered. TODO: ADD RECURSION HERE.\n';;
+                * ) printf '\033[0;31mERROR: Incorrect input value. Please input (Y/N) or (y/n).\033[0m\n';
+                    INTERFACE_PROMPT;;
 	esac
 	}
 	if [ $1 = "s" ]
