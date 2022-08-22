@@ -62,25 +62,25 @@ function MASQLIST() {
 }
 function SETUP_MASQ() {
 	function INTERFACE_PROMPT() {
-	while true;
-	do
-        	printf 'Available interfaces: ';
-        	for INT in $INTERFACES
-        	do
-                	printf '\033[0;32m %s \033[0m' $INT;
-        	done
-        	printf '\n';
-        	read -p 'Which interface would you like to bind to? ' INTERFACE;
-        	printf 'You entered \033[0;32m %s\033[0m. ' $INTERFACE;
-        	read -p 'Is this correct? (Y/N) ' YN;
-        	break;
-	done
-	case $YN in
-                [Yy]* ) ;;
-                [Nn]* ) INTERFACE_PROMPT;;
-                * ) printf '\033[0;31mERROR: Incorrect input value. Please input (Y/N) or (y/n).\033[0m\n';
-                    INTERFACE_PROMPT;;
-	esac
+		while true;
+		do
+        		printf 'Available interfaces: ';
+        		for INT in $INTERFACES
+        		do
+                		printf '\033[0;32m %s \033[0m' $INT;
+        		done
+        		printf '\n';
+        		read -p 'Which interface would you like to bind to? ' INTERFACE;
+        		printf 'You entered \033[0;32m %s\033[0m. ' $INTERFACE;
+        		read -p 'Is this correct? (Y/N) ' YN;
+        		break;
+		done
+		case $YN in
+                	[Yy]* ) ;;
+                	[Nn]* ) INTERFACE_PROMPT;;
+                	* ) printf '\033[0;31mERROR: Incorrect input value. Please input (Y/N) or (y/n).\033[0m\n';
+                    	INTERFACE_PROMPT;;
+		esac
 	}
 	INTERFACE_PROMPT;
 	if [ $1 = "s" ]
@@ -117,20 +117,12 @@ function SETUP_MASQ() {
 	fi
 }
 function MASQ_PROMPT() {
-	while true; 
-	do
-    		read -p 'Setup dnsmasq for local system use only? ' YN
-    		case $YN in
-			[Yy]* ) SETUP_MASQ 'u';;
-        		[Nn]* ) read -p 'Setup dnsmasq as an external DNS server? ' PROMPT
-				case $PROMPT in
-					[Yy]* ) SETUP_MASQ 's';;
-					[Nn]* ) printf 'Invalid input. Exiting... \n'; break;;
-				esac;;
-   			* ) printf 'FATAL: Invalid user input or option selected. You must choose to setup dnsmasq as a local or external DNS server.\nExiting...\n'; break;;
-    		esac
-	done
-
+        read -p 'Setup dnsmasq for local or server use? (LOCAL/SERVER) ' LS
+        case $LS in
+                LOCAL|local ) SETUP_MASQ 'u';;
+                SERVER|server ) SETUP_MASQ 's';;
+                * ) printf '\033[0;31mERROR: Incorrect input value. Please input "SERVER/server" or "LOCAL/local".\033[0m\n';
+        esac
 }
 function AS_ROOT_ENTRY() {
         if [ $(id -u) != 0 ]
