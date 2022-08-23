@@ -122,6 +122,7 @@ function SETUP_MASQ() {
 		if [ $MASQACTIVE != 'active' ]
 		then
 			printf '\033[0;31mFATAL: dnsmasq not active. It is likely failing on start. Unable to recover.\033[0m\n'; 
+		fi
 		exit;
 	fi
 }
