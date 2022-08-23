@@ -61,6 +61,7 @@ function MASQLIST() {
 	fi
 }
 function SETUP_MASQ() {
+	# Add address listen prompt
 	function INTERFACE_PROMPT() {
 		while true;
 		do
@@ -89,7 +90,13 @@ function SETUP_MASQ() {
 		DISTRO_INST;
 		MASQLIST;
 		RESOLVED_OFF;
-		# TODO: Server setup
+		# TODO server setup
+		# TODO add resolv.conf
+		# TODO update NetworkManager
+		# TODO if no NM --> 
+		# TODO add addn-hosts
+	        # TODO add listen interface
+		# TODO add listen address
 		exit;
 	fi
 	if [ $1 = "u" ]
@@ -98,8 +105,10 @@ function SETUP_MASQ() {
 		DISTRO_INST;
 		MASQLIST;
 		RESOLVED_OFF;
+		# is this check actually necessary?
 	        if [ $DISTRO = 'fedora' ] || [ $DISTRO = 'centos' ] || [ $DISTRO = 'rhel' ]
         	then
+			# Abstract out to separate function
 			NMSTAT=$(systemctl is-active NetworkManager);
 			if [ $NMSTAT = 'active' ] 
 			then
@@ -110,6 +119,8 @@ function SETUP_MASQ() {
 				sudo systemctl restart NetworkManager;
 			fi
 		fi
+		# TODO if distro non RHEL derivative
+		# TODO if no NM --> 
 		cp /etc/dnsmasq.conf /etc/dnsmasq.old
 		printf '### MASQHOLE CONFIGURATION ###\n' >> /etc/dnsmasq.conf
 		printf 'addn-hosts /etc/masqhole.list\n' >> /etc/dnsmasq.conf
