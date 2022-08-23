@@ -1,2 +1,2 @@
 # masqhole
-dnsmasq sinkhole setup script.
+dnsmasq ads & trackers sinkhole script for both local & dns server setup.
