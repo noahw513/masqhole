@@ -113,6 +113,15 @@ function SETUP_MASQ() {
 		cp /etc/dnsmasq.conf /etc/dnsmasq.old
 		printf '### MASQHOLE CONFIGURATION ###\n' >> /etc/dnsmasq.conf
 		printf 'addn-hosts /etc/masqhole.list\n' >> /etc/dnsmasq.conf
+		# TODO add listen interface
+		# TODO add listen address
+		systemctl stop dnsmasq;
+		systemctl start dnsmasq;
+		systemctl enable dnsmasq;
+		MASQACTIVE=$(systemctl is-active dnsmasq);
+		if [ $MASQACTIVE != 'active' ]
+		then
+			printf '\033[0;31mFATAL: dnsmasq not active. It is likely failing on start. Unable to recover.\033[0m\n'; 
 		exit;
 	fi
 }
