@@ -82,10 +82,37 @@ function SETUP_MASQ() {
                 break;
         done
         case $YN in
-        	[Yy]* ) case $BIND in 
-				INTERFACE|Interface|interface|INT|int|Int ) ;;
-				ADDRESS|Address|address|ADDR|addr|Addr ) ;;
-				BOTH|Both|both ) ;;
+        	[Yy]* ) case $BIND in
+		       		# Abstract out to separate function	
+				INTERFACE|Interface|interface|INT|int|Int ) 
+					read -p 'Re-print interfaces?' YN;
+					case $YN in
+						[Yy]* ) printf 'Available interfaces: ';
+							for INT in $INTERFACES
+                                        		do
+                                                		printf '\033[0;32m %s \033[0m' $INT;
+                                        		done
+							printf '\n'
+							read -p 'Which interface would you like to bind to? ' INT;
+							# Call dnsmasq configuration w/ interface
+							# DNSMASQ_CONFIG 'i' 'interface-name-here'
+							;;
+						[Nn]* ) read -p 'Which interface would you like to bind to? ' INT;
+							# Call dnsmasq configuration w/ interface
+							# DNSMASQ_CONFIG 'i' 'interface-name-here'
+							;;
+						* ) # Add recursion
+							;;
+					esac
+				;;
+				# Abstract out to separate function
+				ADDRESS|Address|address|ADDR|addr|Addr ) 
+				
+				;;
+				# Abstract out to separate function
+				BOTH|Both|both|b|B ) 
+				
+				;;
 			esac
                 [Nn]* ) MASQ_PROMPT;;
                 * ) printf '\033[0;31mERROR: Incorrect input value. Please input (Y/N) or (y/n).\033[0m\n';
