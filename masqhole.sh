@@ -2,6 +2,7 @@
 OS_RELEASE=$(cat /etc/os-release | grep ID= | head -n 1);
 OS_RELEASE=${OS_RELEASE#*=};
 INTERFACES=$(ls /sys/class/net/);
+ADDRESSES=$(ip -4 addr | sed -n -e 's/inet //p' | sed 's/^ *//g' | cut -d' ' -f1);
 PKG_LIST="dnsmasq wget";
 function DISTRO_INST() {
 	local OS_RELEASE=$(cat /etc/os-release | grep ID= | head -n 1);
@@ -61,27 +62,32 @@ function MASQLIST() {
 	fi
 }
 function SETUP_MASQ() {
-	# Add address listen prompt
 	function MASQ_PROMPT() {
-		while true;
-		do
-        		printf 'Available interfaces: ';
-        		for INT in $INTERFACES
-        		do
-                		printf '\033[0;32m %s \033[0m' $INT;
-        		done
-        		printf '\n';
-        		read -p 'Which interface would you like to bind to? ' INTERFACE;
-        		printf 'You entered \033[0;32m %s\033[0m. ' $INTERFACE;
-        		read -p 'Is this correct? (Y/N) ' YN;
-        		break;
-		done
-		case $YN in
-                	[Yy]* ) ;;
-                	[Nn]* ) MASQ_PROMPT;;
-                	* ) printf '\033[0;31mERROR: Incorrect input value. Please input (Y/N) or (y/n).\033[0m\n';
-                    	MASQ_PROMPT;;
-		esac
+        while true;
+        do
+                printf 'Available interfaces: ';
+                for INT in $INTERFACES
+                do
+                        printf '\033[0;32m %s \033[0m' $INT;
+                done
+                printf '\nAvailable addresses: ';
+                for ADDR in $ADDRESSES
+                do
+                        printf '\033[0;32m %s \033[0m' $ADDR;
+                done
+                printf '\nWould you like to bind dnsmasq to an interface, an address, or both? ';
+                read -p '(INTERFACE/ADDRESS/BOTH): ' BIND;
+                #read -p 'Which interface would you like to bind to? ' INTERFACE;
+                #printf 'You entered \033[0;32m %s\033[0m. ' $INTERFACE;
+                #read -p 'Is this correct? (Y/N) ' YN;
+                break;
+        done
+        #case $YN in
+        #       [Yy]* ) ;;
+        #         [Nn]* ) MASQ_PROMPT;;
+        #         * ) printf '\033[0;31mERROR: Incorrect input value. Please input (Y/N) or (y/n).\033[0m\n';
+        #         MASQ_PROMPT;;
+        #esac
 	}
 	function NETMAN_CONFIG() {
         	cp /etc/resolv.conf /etc/resolv.conf.bak;
