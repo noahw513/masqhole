@@ -77,17 +77,20 @@ function SETUP_MASQ() {
                 done
                 printf '\nWould you like to bind dnsmasq to an interface, an address, or both? ';
                 read -p '(INTERFACE/ADDRESS/BOTH): ' BIND;
-                #read -p 'Which interface would you like to bind to? ' INTERFACE;
-                #printf 'You entered \033[0;32m %s\033[0m. ' $INTERFACE;
-                #read -p 'Is this correct? (Y/N) ' YN;
+                printf 'dnsmasq will be bound to \033[0;32m %s\033[0m.';
+		read -p 'Is this correct? (Y/N)' YN;
                 break;
         done
-        #case $YN in
-        #       [Yy]* ) ;;
-        #         [Nn]* ) MASQ_PROMPT;;
-        #         * ) printf '\033[0;31mERROR: Incorrect input value. Please input (Y/N) or (y/n).\033[0m\n';
-        #         MASQ_PROMPT;;
-        #esac
+        case $YN in
+        	[Yy]* ) case $BIND in 
+				INTERFACE|Interface|interface|INT|int|Int ) ;;
+				ADDRESS|Address|address|ADDR|addr|Addr ) ;;
+				BOTH|Both|both ) ;;
+			esac
+                [Nn]* ) MASQ_PROMPT;;
+                * ) printf '\033[0;31mERROR: Incorrect input value. Please input (Y/N) or (y/n).\033[0m\n';
+                MASQ_PROMPT;;
+        esac
 	}
 	function NETMAN_CONFIG() {
         	cp /etc/resolv.conf /etc/resolv.conf.bak;
