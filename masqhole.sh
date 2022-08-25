@@ -62,7 +62,7 @@ function MASQLIST() {
 }
 function SETUP_MASQ() {
 	# Add address listen prompt
-	function INTERFACE_PROMPT() {
+	function MASQ_PROMPT() {
 		while true;
 		do
         		printf 'Available interfaces: ';
@@ -78,12 +78,35 @@ function SETUP_MASQ() {
 		done
 		case $YN in
                 	[Yy]* ) ;;
-                	[Nn]* ) INTERFACE_PROMPT;;
+                	[Nn]* ) MASQ_PROMPT;;
                 	* ) printf '\033[0;31mERROR: Incorrect input value. Please input (Y/N) or (y/n).\033[0m\n';
-                    	INTERFACE_PROMPT;;
+                    	MASQ_PROMPT;;
 		esac
 	}
-	INTERFACE_PROMPT;
+	function NETMAN_CONFIG() {
+        	cp /etc/resolv.conf /etc/resolv.conf.bak;
+                touch /etc/resolv.conf;
+                printf 'nameserver 127.0.0.1' >> /etc/resolv.conf;
+                sed '/\[main\]/a dns=none' /etc/NetworkManager/NetworkManager.conf >> /etc/NetworkManager/NetworkManager.conf;
+                sudo systemctl restart NetworkManager;
+	}
+	function DNSMASQ_CONFIG() {
+		cp /etc/dnsmasq.conf /etc/dnsmasq.conf.bak;
+                printf '### MASQHOLE CONFIGURATION ###\n' >> /etc/dnsmasq.conf;
+                printf 'addn-hosts /etc/masqhole.list\n' >> /etc/dnsmasq.conf;
+		# TODO add listen address
+		# TODO add listen interface
+		systemctl stop dnsmasq;
+		systemctl enable dnsmasq;
+		systemctl start dnsmasq;
+                if [ $(systemctl is-active dnsmasq) != 'active' ]
+                then
+                        printf '\033[0;31mFATAL: dnsmasq not active. It is likely failing on start. Unable to recover.\033[0m\n';
+			exit;
+                fi
+
+	}
+	MASQ_PROMPT;
 	if [ $1 = "s" ]
 	then 
 		printf 'Setting up dnsmasq as an external DNS server. \n';
@@ -93,7 +116,7 @@ function SETUP_MASQ() {
 		# TODO server setup
 		# TODO add resolv.conf
 		# TODO update NetworkManager
-		# TODO if no NM --> 
+		# TODO if no NM --> how to handle resolv.conf?
 		# TODO add addn-hosts
 	        # TODO add listen interface
 		# TODO add listen address
@@ -105,36 +128,12 @@ function SETUP_MASQ() {
 		DISTRO_INST;
 		MASQLIST;
 		RESOLVED_OFF;
-		# is this check actually necessary?
-	        if [ $DISTRO = 'fedora' ] || [ $DISTRO = 'centos' ] || [ $DISTRO = 'rhel' ]
-        	then
-			# Abstract out to separate function
-			NMSTAT=$(systemctl is-active NetworkManager);
-			if [ $NMSTAT = 'active' ] 
-			then
-				cp /etc/resolv.conf /etc/resolv.conf.old;
-				touch /etc/resolv.conf;
-				printf 'nameserver 127.0.0.1' >> /etc/resolv.conf;
-				sed '/\[main\]/a dns=none' /etc/NetworkManager/NetworkManager.conf >> /etc/NetworkManager/NetworkManager.conf;
-				sudo systemctl restart NetworkManager;
-			fi
-		fi
-		# TODO if distro non RHEL derivative
-		# TODO if no NM --> 
-		cp /etc/dnsmasq.conf /etc/dnsmasq.old
-		printf '### MASQHOLE CONFIGURATION ###\n' >> /etc/dnsmasq.conf
-		printf 'addn-hosts /etc/masqhole.list\n' >> /etc/dnsmasq.conf
-		# TODO add listen interface
-		# TODO add listen address
-		systemctl stop dnsmasq;
-		systemctl start dnsmasq;
-		systemctl enable dnsmasq;
-		MASQACTIVE=$(systemctl is-active dnsmasq);
-		if [ $MASQACTIVE != 'active' ]
+		if [ $(systemctl is-active NetworkManager) = 'active' ] 
 		then
-			printf '\033[0;31mFATAL: dnsmasq not active. It is likely failing on start. Unable to recover.\033[0m\n'; 
+			NETMAN_CONFIG;
 		fi
-		exit;
+		# TODO if no NM --> how to handle resolv.conf?
+		DNSMASQ_CONFIG;
 	fi
 }
 function MASQ_PROMPT() {
@@ -143,8 +142,7 @@ function MASQ_PROMPT() {
                 LOCAL|local ) SETUP_MASQ 'u';;
                 SERVER|server ) SETUP_MASQ 's';;
                 * ) printf '\033[0;31mERROR: Incorrect input value. ';
-                        printf 'Please input (SERVER/server) or (LOCAL/local).\033[0m\n';;
-        
+                    printf 'Please input (SERVER/server) or (LOCAL/local).\033[0m\n';;
 	esac
 }
 function AS_ROOT_ENTRY() {
