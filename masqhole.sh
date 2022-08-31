@@ -1,9 +1,42 @@
 #!/bin/bash
 OS_RELEASE=$(cat /etc/os-release | grep ID= | head -n 1);
 OS_RELEASE=${OS_RELEASE#*=};
-INTERFACES=$(ls /sys/class/net/);
-ADDRESSES=$(ip -4 addr | sed -n -e 's/inet //p' | sed 's/^ *//g' | cut -d' ' -f1);
 PKG_LIST="dnsmasq wget";
+STR_INTERFACES=$(ls /sys/class/net/);
+STR_ADDRESSES=$(ip -4 addr | sed -n -e 's/inet //p' | sed 's/^ *//g' | cut -d' ' -f1);
+declare -a INTERFACE_ARR=();
+declare -a ADDRESS_ARR=();
+declare -A NET_ASSOC_ARR=();
+COUNT=1;
+DEBUG=0;
+function CREATE_ARRS() {
+        # Setup interfaces indexed array
+        for INTERFACE in $STR_INTERFACES;
+        do
+                INTERFACE_ARR+=($INTERFACE);
+        done
+        # Setup IPv4 addresses indexed array
+        for ADDRESS in $STR_ADDRESSES;
+        do
+                ADDRESS_ARR+=($ADDRESS);
+        done
+        # Setup network assoc array
+        for INTERFACE in ${INTERFACE_ARR[*]};
+        do
+                NET_ASSOC_ARR+=( [$INTERFACE]=${ADDRESS_ARR[@]:($COUNT - 1):$COUNT} );
+                ((COUNT++));
+        done
+        # Debug
+        if [ $DEBUG = 1 ]
+        then
+                printf 'NET_ASSOC_ARR: \n';
+                for KEY in ${!NET_ASSOC_ARR[@]};
+                do
+                        printf '[%s] = %s\n' $KEY ${NET_ASSOC_ARR[$KEY]};
+                done
+        fi
+}
+# Old fns
 function DISTRO_INST() {
 	local OS_RELEASE=$(cat /etc/os-release | grep ID= | head -n 1);
 	local DISTRO=${OS_RELEASE#*=};
