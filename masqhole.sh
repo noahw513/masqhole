@@ -27,6 +27,16 @@ function CREATE_ARRS() {
         # Debug
         if [ $DEBUG = 1 ];
         then
+		printf '\033[0;33mDEBUG: ADDRESS_ARR = \033[0m\n';
+		for ADDR in ${ADDRESS_ARR[@]};
+		do
+			printf '\033[0;33m%s\033[0m\n' $ADDR;
+		done
+		printf '\033[0;33mDEBUG: INTERFACE_ARR = \033[0m\n';
+		for INT in ${INTERFACE_ARR[@]};
+		do
+			printf '\033[0;33m%s\033[0m\n' $INT;
+		done
                 printf '\033[0;33mDEBUG: NET_ASSOC_ARR = \033[0m\n';
                 for KEY in ${!NET_ASSOC_ARR[@]};
                 do
@@ -118,15 +128,28 @@ function MASQLIST() {
 # Setup prompt
 function MASQ_PROMPT {
 	local DEBUG=0;
-	printf 'Available addresses:\n';
+	# Show user available interfaces
+	printf 'Available interfaces:\n';
 	for KEY in ${!NET_ASSOC_ARR[@]};
 	do
 		printf '\033[0;32m%s: %s\033[0m\n' $KEY ${NET_ASSOC_ARR[$KEY]};
 	done
 	read -p 'Which interface would you like to bind to? ' INTERFACE_PROMPT;
+	# Debug user prompt input
 	if [ $DEBUG = 1 ];
 	then
 		printf '\033[0;33mDEBUG: INTERFACE_PROMPT = %s\033[0m\n' $INTERFACE_PROMPT;
+	fi
+	if [[ "${INTERFACE_ARR[*]}" =~ "$INTERFACE_PROMPT" ]]
+	then
+		echo "";	
+		# Do something here
+	fi
+	if [[ ! "${INTERFACE_ARR[*]}" =~ "$INTERFACE_PROMPT" ]]
+	then
+		clear >$(tty);
+		printf '\033[0;31mERR: %s is not an available interface.\033[0m\n' $INTERFACE_PROMPT;
+		MASQ_PROMPT;
 	fi
 }
 # Entry point
