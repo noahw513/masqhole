@@ -109,7 +109,7 @@ function RESOLVED_OFF() {
 	return 0;
 }
 # Pulls the sinkhole list
-function MASQLIST() {
+function MASQ_LIST() {
 	# Put sinkhole list in /etc/ as masqhole.list --> /etc/masqhole.list
 	wget https://raw.githubusercontent.com/noahw513/Giant-DNS-Blocklist/main/master-block.list -O /etc/masqhole.list &> /dev/null;
 	if [ $? != 0 ]
@@ -124,6 +124,21 @@ function MASQLIST() {
 			exit;
 		fi
 	fi
+}
+# Setup MASQ
+function MASQ_SETUP {
+	local DEBUG=0;
+	local SELECTED_INTERFACE=$1;
+	if [ $DEBUG = 1 ]
+	then
+		printf '\033[0;33mDEBUG: Passed INTERFACE_PROMPT = %s\033[0m\n' $1;
+		printf '\033[0;33mDEBUG: SELECTED_INTERFACE = %s\033[0m\n' $SELECTED_INTERFACE;
+	fi
+	# Setup addn-hosts
+	# Setup interface binding
+	# Setup start dnsmasq
+	# Setup enable dnsmasq
+	# Setup testing of sinkhole with dig
 }
 # Setup prompt
 function MASQ_PROMPT {
@@ -142,7 +157,10 @@ function MASQ_PROMPT {
 	fi
 	if [[ "${INTERFACE_ARR[*]}" =~ "$INTERFACE_PROMPT" ]]
 	then
-		echo "";	
+		#DISTRO_INST;
+		#MASQ_LIST;
+		#RESOLVED_OFF;
+		MASQ_SETUP "$INTERFACE_PROMPT";	
 		# Do something here
 	fi
 	if [[ ! "${INTERFACE_ARR[*]}" =~ "$INTERFACE_PROMPT" ]]
