@@ -1,9 +1,9 @@
 #!/bin/bash
+declare -a ADDRESS_ARR=();
+declare -a INTERFACE_ARR=();
+declare -A NET_ASSOC_ARR=();
 # Creates the arrays used by the interface/IPv4 address binding prompt
 function CREATE_ARRS() {
-	declare -a ADDRESS_ARR=();
-	declare -a INTERFACE_ARR=();
-	declare -A NET_ASSOC_ARR=();
 	local COUNT=1;
         local DEBUG=0;
 	local STR_ADDRESSES=$(ip -4 addr | sed -n -e 's/inet //p' | sed 's/^ *//g' | cut -d' ' -f1);
@@ -25,14 +25,15 @@ function CREATE_ARRS() {
                 ((COUNT++));
         done
         # Debug
-        if [ $DEBUG = 1 ]
+        if [ $DEBUG = 1 ];
         then
-                printf 'NET_ASSOC_ARR: \n';
+                printf '\033[0;33mDEBUG: NET_ASSOC_ARR = \033[0m\n';
                 for KEY in ${!NET_ASSOC_ARR[@]};
                 do
-                        printf '[%s] = %s\n' $KEY ${NET_ASSOC_ARR[$KEY]};
+                        printf '\033[0;33m[%s] = %s\033[0m\n' $KEY ${NET_ASSOC_ARR[$KEY]};
                 done
         fi
+	MASQ_PROMPT;
 }
 # Determines distro of target machine & installs pkgs with correct pkg mgr
 # ONLY supports RHEL & Debian based OSes
@@ -42,16 +43,16 @@ function DISTRO_INST() {
 	local DISTRO=${OS_RELEASE#*=};
 	local PKG_LIST="dig dnsmasq wget";
 	# Debug
-	if [ $DEBUG = 1 ]
+	if [ $DEBUG = 1 ];
 	then
-		printf 'OS_RELEASE = %s\n' $OS_RELEASE;
-		printf 'DISTRO = %s\n' $DISTRO;
+		printf '\033[0;33mDEBUG: OS_RELEASE = %s\033[0m\n' $OS_RELEASE;
+		printf '\033[0;33mDEBUG: DISTRO = %s\033[0m\n' $DISTRO;
 	fi
 	# Prod
-	if [ $DEBUG = 0 ] 
+	if [ $DEBUG = 0 ]; 
 	then
 		# If target machine is RHEL derived use dnf
-		if [ $DISTRO = 'fedora' ] || [ $DISTRO = 'centos' ] || [ $DISTRO = 'rhel' ]
+		if [ $DISTRO = 'fedora' ] || [ $DISTRO = 'centos' ] || [ $DISTRO = 'rhel' ];
 		then
 			for PKG in $PKG_LIST
 			do
@@ -59,12 +60,17 @@ function DISTRO_INST() {
 			done
 		fi
 		# If target machine is debian derived use apt
-		if [ $DISTRO = 'debian' ] || [ $DISTRO = 'ubuntu' ] 
+		if [ $DISTRO = 'debian' ] || [ $DISTRO = 'ubuntu' ];
 		then
 			for PKG in $PKG_LIST 
 			do
 				apt install $PKG -y &> /dev/null;
 			done
+		fi
+		# General err handling
+		if [ $DISTRO != 'fedora' ] && [ $DISTRO != 'centos' ] && [ $DISTRO != 'rhel' ] && [ $DISTRO = 'debian' ] && [ $DISTRO != 'ubuntu' ];
+		then
+			printf '\033[0;31mFATAL: Unsupported distribution. Exiting.\033[0m\n';
 		fi
 	fi
 }
@@ -72,21 +78,21 @@ function DISTRO_INST() {
 function RESOLVED_OFF() {
 	local RUN_STAT=$(systemctl is-active systemd-resolved);
 	local ENABLED_STAT=$(systemctl is-enabled systemd-resolved);
-	if [ $RUN_STAT = "active" ] 
+	if [ $RUN_STAT = "active" ]; 
 	then 
 		systemctl stop systemd-resolved &> /dev/null;
-		if [ $? != 0 ]
+		if [ $? != 0 ];
 		then
-			printf 'FATAL: Failed to stop systemd-resolved. Exiting.\n';
+			printf '\033[0;31mFATAL: Failed to stop systemd-resolved. Exiting.\033[0m\n';
 			exit;
 		fi
 	fi
-	if [ $ENABLED_STAT = "enabled" ]
+	if [ $ENABLED_STAT = "enabled" ];
 	then
 		systemctl disable systemd-resolved &> /dev/null;
-		if [ $? != 0 ]
+		if [ $? != 0 ];
 		then
-			printf 'FATAL: Failed to disabled systemd-resolved. Exiting.\n';
+			printf '\033[0;31mFATAL: Failed to disabled systemd-resolved. Exiting.\033[0m\n';
 			exit;
 		fi
 	fi
@@ -102,28 +108,39 @@ function MASQLIST() {
 		exit;
 	else
 	        # General error handling	
-		if [ -f /etc/masqhole.list ]
+		if [ ! -f /etc/masqhole.list ];
 		then
-			return 0;
-		else 
-			printf 'FATAL: Uknown error. Masqhole list, "masqhole.list", not present in /etc/.\n';
+			printf '\033[0;31mFATAL: Uknown error. Masqhole list, "masqhole.list", not present in /etc/.\033[0m\n';
 			exit;
 		fi
+	fi
+}
+# Setup prompt
+function MASQ_PROMPT {
+	local DEBUG=0;
+	printf 'Available addresses:\n';
+	for KEY in ${!NET_ASSOC_ARR[@]};
+	do
+		printf '\033[0;32m%s: %s\033[0m\n' $KEY ${NET_ASSOC_ARR[$KEY]};
+	done
+	read -p 'Which interface would you like to bind to? ' INTERFACE_PROMPT;
+	if [ $DEBUG = 1 ];
+	then
+		printf '\033[0;33mDEBUG: INTERFACE_PROMPT = %s\033[0m\n' $INTERFACE_PROMPT;
 	fi
 }
 # Entry point
 # Validates script is being run as root
 function AS_ROOT_ENTRY() {
-        if [ $(id -u) != 0 ]
+        if [ $(id -u) != 0 ];
         then
-                printf 'FATAL: Script must be run as root.\n';
+                printf '\033[0;31mFATAL: Script must be run as root.\033[0m\n';
                 exit;
         fi
-        if [ $(id -u) = 0 ]
+        if [ $(id -u) = 0 ];
         then
                 printf 'Beginning masqhole setup.\n';
-		DISTRO_INST;
-		# MASQ_PROMPT;
+		CREATE_ARRS;
         fi
 }
 AS_ROOT_ENTRY;
