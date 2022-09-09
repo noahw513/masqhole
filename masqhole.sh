@@ -134,8 +134,26 @@ function MASQ_SETUP {
 		printf '\033[0;33mDEBUG: Passed INTERFACE_PROMPT = %s\033[0m\n' $1;
 		printf '\033[0;33mDEBUG: SELECTED_INTERFACE = %s\033[0m\n' $SELECTED_INTERFACE;
 	fi
-	# Setup addn-hosts
-	# Setup interface binding
+	if [ -f /etc/dnsmasq.conf ] && [ ! -f /etc/dnsmasq.conf.bak ]
+	then
+        	cp /etc/dnsmasq.conf /etc/dnsmasq.conf.bak;
+		if [ $(sudo head -n1 /etc/dnsmasq.conf | cut -c -3) != "###" ]
+		then
+			sed -i '1i ### FOR MORE INFORMATION SEE: https://github.com/noahw513/masqhole ###\n' /etc/dnsmasq.conf;
+			sed -i '1i ### THIS FILE HAS BEEN PROGRAMMATICALLY MODIFIED ###' /etc/dnsmasq.conf;
+		fi
+	fi
+	sed -i -e '$a\' /etc/dnsmasq.conf
+	sed -i -e '$a\' /etc/dnsmasq.conf
+	# If there is any instance of interface or addn-hosts matching, then remove all matches
+        if [ $(grep -e 'interface=lo' /etc/dnsmasq.conf) = "interface=lo" ] &&
+        then
+                sed -i 's/interface=lo/#interface=lo/g' /etc/dnsmasq.conf;
+        fi
+        if [ $(grep -e 'addn-hosts' /etc/dnsmasq.conf | tail -n1) != "addn-hosts=/etc/masqhole.list" ]
+        then
+		sed -i 's/addn-hosts/#addn-hosts/g' /etc/dnsmasq.conf;
+        fi
 	# Setup start dnsmasq
 	# Setup enable dnsmasq
 	# Setup testing of sinkhole with dig
