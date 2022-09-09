@@ -154,7 +154,22 @@ function MASQ_SETUP {
         then
 		sed -i 's/addn-hosts/#addn-hosts/g' /etc/dnsmasq.conf;
         fi
+	# Define section of config as programmatically controlled
+	sed -i -e '$a\' /etc/dnsmasq.conf;
+        sed -i -e '$a\' /etc/dnsmasq.conf;
+        sed -i -e '$a### THIS SECTION PROGRAMMATICALLY CONTROLLED ###\n' /etc/dnsmasq.conf;
+	# Add addn-hosts
+	sed -i -e '$aaddn-hosts=/etc/masqhole.list' /etc/dnsmasq.conf;	
+	# Add interface listening
+
 	# Setup start dnsmasq
+	systemctl start dnsmasq;
+	if [ $(systemctl is-active dnsmasq) != 0 ] 
+	then
+		printf '\033[0;31mFATAL: dnsmasq cannot be started.\033[0m\n';
+		DEBUG=$(journalctl -u NetworkManager | tail -n 5);
+		printf '\033[0;33mJournalctl log: \n %s\033[0m\n';
+	fi	
 	# Setup enable dnsmasq
 	# Setup testing of sinkhole with dig
 }
